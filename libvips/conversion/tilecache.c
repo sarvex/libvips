@@ -554,10 +554,20 @@ vips_tile_cache_ref( VipsBlockCache *cache, VipsRect *r )
 	 */
 	const int xs = (r->left / tw) * tw;
 	const int ys = (r->top / th) * th;
+	const int num_tiles = (r->height / th) + (r->width / tw);
 
 	GSList *work;
 	VipsTile *tile;
 	int x, y;
+
+	/* We size up the cache to the largest request.
+	 */
+	if( cache->max_tiles != -1 &&
+		num_tiles > cache->max_tiles ) {
+		cache->max_tiles = num_tiles;
+		VIPS_DEBUG_MSG( "vips_tile_cache_ref: bumped max_tiles to %d\n",
+			cache->max_tiles ); 
+	}
 
 	/* Ref all the tiles we will need.
 	 */
@@ -595,7 +605,7 @@ vips_tile_paste( VipsTile *tile, VipsRegion *or )
 		vips_region_copy( tile->region, or, &hit, hit.left, hit.top ); 
 }
 
-/* Also called from vips_line_cache_gen(), beware.
+/* Also used by vips_line_cache(), beware.
  */
 static int
 vips_tile_cache_gen( VipsRegion *or, 
@@ -882,33 +892,6 @@ typedef VipsBlockCacheClass VipsLineCacheClass;
 G_DEFINE_TYPE( VipsLineCache, vips_line_cache, VIPS_TYPE_BLOCK_CACHE );
 
 static int
-vips_line_cache_gen( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
-{
-	VipsBlockCache *block_cache = (VipsBlockCache *) b;
-
-	VIPS_GATE_START( "vips_line_cache_gen: wait" );
-
-	vips__worker_lock( block_cache->lock );
-
-	VIPS_GATE_STOP( "vips_line_cache_gen: wait" );
-
-	/* We size up the cache to the largest request.
-	 */
-	if( or->valid.height > 
-		block_cache->max_tiles * block_cache->tile_height ) {
-		block_cache->max_tiles = 
-			1 + (or->valid.height / block_cache->tile_height);
-		VIPS_DEBUG_MSG( "vips_line_cache_gen: bumped max_tiles to %d\n",
-			block_cache->max_tiles ); 
-	}
-
-	g_mutex_unlock( block_cache->lock );
-
-	return( vips_tile_cache_gen( or, seq, a, b, stop ) ); 
-}
-
-static int
 vips_line_cache_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
@@ -928,8 +911,6 @@ vips_line_cache_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* This can go up with request size, see vips_line_cache_gen().
-	 */
 	vips_get_tile_size( block_cache->in, 
 		&tile_width, &tile_height, &n_lines );
 	block_cache->tile_width = block_cache->in->Xsize;
@@ -965,7 +946,7 @@ vips_line_cache_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_line_cache_gen, vips_stop_one, 
+		vips_start_one, vips_tile_cache_gen, vips_stop_one, 
 		block_cache->in, cache ) )
 		return( -1 );
 

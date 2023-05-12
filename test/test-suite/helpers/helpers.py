@@ -167,19 +167,14 @@ def zip_expand(x, y):
 # run a 1-ary function on a thing -- loop over elements if the
 # thing is a list
 def run_fn(fn, x):
-    if isinstance(x, list):
-        return [fn(i) for i in x]
-    else:
-        return fn(x)
+    return [fn(i) for i in x] if isinstance(x, list) else fn(x)
 
 
 # make a temp filename with the specified suffix and in the
 # specified directory
 def temp_filename(directory, suffix):
     temp_name = next(tempfile._get_candidate_names())
-    filename = os.path.join(directory, temp_name + suffix)
-
-    return filename
+    return os.path.join(directory, temp_name + suffix)
 
 
 # test for an operator exists
@@ -188,8 +183,9 @@ def have(name):
 
 
 def skip_if_no(operation_name):
-    return pytest.mark.skipif(not have(operation_name),
-                        reason='no {}, skipping test'.format(operation_name))
+    return pytest.mark.skipif(
+        not have(operation_name), reason=f'no {operation_name}, skipping test'
+    )
 
 
 # run a 2-ary function on two things -- loop over elements pairwise if the
@@ -206,20 +202,21 @@ def run_fn2(fn, x, y):
 # test a pair of things which can be lists for approx. equality
 def assert_almost_equal_objects(a, b, threshold=0.0001, msg=''):
     # print('assertAlmostEqualObjects %s = %s' % (a, b))
-    assert all([pytest.approx(x, abs=threshold) == y
-                for x, y in zip_expand(a, b)]), msg
+    assert all(
+        pytest.approx(x, abs=threshold) == y for x, y in zip_expand(a, b)
+    ), msg
 
 
 # test a pair of things which can be lists for equality
 def assert_equal_objects(a, b, msg=''):
     # print 'assertEqualObjects %s = %s' % (a, b)
-    assert all([x == y for x, y in zip_expand(a, b)]), msg
+    assert all(x == y for x, y in zip_expand(a, b)), msg
 
 
 # test a pair of things which can be lists for difference less than a
 # threshold
 def assert_less_threshold(a, b, diff):
-    assert all([abs(x - y) < diff for x, y in zip_expand(a, b)])
+    assert all(abs(x - y) < diff for x, y in zip_expand(a, b))
 
 
 # run a function on an image and on a single pixel, the results

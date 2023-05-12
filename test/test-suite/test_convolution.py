@@ -23,7 +23,7 @@ def conv(image, mask, x_position, y_position):
 
 def compass(image, mask, x_position, y_position, n_rot, fn):
     acc = []
-    for i in range(0, n_rot):
+    for _ in range(0, n_rot):
         result = conv(image, mask, x_position, y_position)
         result = run_fn(abs, result)
         acc.append(result)
@@ -86,19 +86,19 @@ class TestConvolution:
             for msk in self.all_masks:
                 print("msk:")
                 msk.matrixprint()
-                print("im.bands = %s" % im.bands)
+                print(f"im.bands = {im.bands}")
 
                 convolved = im.conv(msk,
                                     precision=pyvips.Precision.APPROXIMATE)
 
                 result = convolved(25, 50)
                 true = conv(im, msk, 24, 49)
-                print("result = %s, true = %s" % (result, true))
+                print(f"result = {result}, true = {true}")
                 assert_less_threshold(result, true, 5)
 
                 result = convolved(50, 50)
                 true = conv(im, msk, 49, 49)
-                print("result = %s, true = %s" % (result, true))
+                print(f"result = {result}, true = {true}")
                 assert_less_threshold(result, true, 5)
 
     def test_compass(self):

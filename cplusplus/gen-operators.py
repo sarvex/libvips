@@ -101,7 +101,7 @@ def generate_operation(operation_name, declaration_only=False):
     if declaration_only:
         result = f'\n/**\n * {intro.description.capitalize()}.'
 
-        if len(optional_input) > 0:
+        if optional_input:
             result += '\n *\n * **Optional parameters**'
             for name in optional_input:
                 details = intro.details[name]
@@ -186,7 +186,7 @@ def generate_operation(operation_name, declaration_only=False):
         result += f'    {cpp_type}{spacing}{cppize(name)};\n\n'
 
     result += f'    call( "{operation_name}",\n'
-    result += f'        (options ? options : VImage::option())'
+    result += '        (options ? options : VImage::option())'
     if intro.member_x is not None:
         result += f'->\n'
         result += f'            set( "{intro.member_x}", *this )'
@@ -242,10 +242,7 @@ def generate_operators(declarations_only=False):
     # add 'missing' synonyms by hand
     all_nicknames.append('crop')
 
-    # make list unique and sort
-    all_nicknames = list(set(all_nicknames))
-    all_nicknames.sort()
-
+    all_nicknames = sorted(set(all_nicknames))
     for nickname in all_nicknames:
         print(generate_operation(nickname, declarations_only))
 

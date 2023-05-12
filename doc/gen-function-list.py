@@ -25,15 +25,14 @@ _OPERATION_DEPRECATED = 8
 def gen_function(operation_name, overloads):
     intro = Introspect.get(operation_name)
 
-    c_operations = 'vips_{}()'.format(operation_name)
+    c_operations = f'vips_{operation_name}()'
 
     if overloads:
-        c_operations += ', ' + (', '.join('vips_{}()'.format(n) for n in overloads))
+        c_operations += ', ' + ', '.join(f'vips_{n}()' for n in overloads)
 
-    result = '<row>\n'
-    result += '  <entry>{}</entry>\n'.format(operation_name)
-    result += '  <entry>{}</entry>\n'.format(intro.description.capitalize())
-    result += '  <entry>{}</entry>\n'.format(c_operations)
+    result = '<row>\n' + f'  <entry>{operation_name}</entry>\n'
+    result += f'  <entry>{intro.description.capitalize()}</entry>\n'
+    result += f'  <entry>{c_operations}</entry>\n'
     result += '</row>'
 
     return result
@@ -60,10 +59,7 @@ def gen_function_list():
 
     type_map(type_from_name('VipsOperation'), add_nickname)
 
-    # make list unique and sort
-    all_nicknames = list(set(all_nicknames))
-    all_nicknames.sort()
-
+    all_nicknames = sorted(set(all_nicknames))
     # make dict with overloads
     overloads = {
         'bandbool': ['bandand', 'bandor', 'bandeor', 'bandmean'],
@@ -90,14 +86,23 @@ def gen_function_list():
         'round': ['floor', 'ceil', 'rint'],
     }
 
-    overloads['boolean_const'] = [o + '_const' for o in overloads['boolean']] + ['boolean_const1'] + \
-                                 [o + '_const1' for o in overloads['boolean']]
+    overloads['boolean_const'] = (
+        [f'{o}_const' for o in overloads['boolean']]
+        + ['boolean_const1']
+        + [f'{o}_const1' for o in overloads['boolean']]
+    )
 
-    overloads['math2_const'] = [o + '_const' for o in overloads['boolean']] + ['math2_const1'] + \
-                               [o + '_const1' for o in overloads['boolean']]
+    overloads['math2_const'] = (
+        [f'{o}_const' for o in overloads['boolean']]
+        + ['math2_const1']
+        + [f'{o}_const1' for o in overloads['boolean']]
+    )
 
-    overloads['relational_const'] = [o + '_const' for o in overloads['relational']] + ['relational_const1'] + \
-                                    [o + '_const1' for o in overloads['relational']]
+    overloads['relational_const'] = (
+        [f'{o}_const' for o in overloads['relational']]
+        + ['relational_const1']
+        + [f'{o}_const1' for o in overloads['relational']]
+    )
 
     for nickname in all_nicknames:
         result = gen_function(nickname, overloads[nickname] if nickname in overloads else None)

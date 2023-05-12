@@ -70,7 +70,7 @@ class TestConnection:
         data = self.colour.write_to_buffer(".jpg")
         x = pyvips.Source.new_from_memory(data)
 
-        assert x.filename() == None
+        assert x.filename() is None
 
     @skip_if_no("jpegload_source")
     def test_image_new_from_source_memory(self):
@@ -84,7 +84,7 @@ class TestConnection:
     def test_target_new_memory(self):
         x = pyvips.Target.new_to_memory()
 
-        assert x.filename() == None
+        assert x.filename() is None
 
     @skip_if_no("jpegload_source")
     def test_image_write_to_target_memory(self):

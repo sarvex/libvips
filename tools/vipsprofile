@@ -42,10 +42,8 @@ class Thread:
     thread_number = 0
 
     def __init__(self, thread_name):
-        # no one cares about the thread address
-        match = re.match(r'(.*) \(0x.*?\) (.*)', thread_name)
-        if match:
-            thread_name = match.group(1) + " " + match.group(2)
+        if match := re.match(r'(.*) \(0x.*?\) (.*)', thread_name):
+            thread_name = f"{match[1]} {match[2]}"
 
         self.thread_name = thread_name
         self.thread_number = Thread.thread_number
@@ -73,12 +71,11 @@ class Event:
         elif re.match('.*wait.*', gate_name):
             self.wait = True
 
+        self.start = start
         if self.memory:
-            self.start = start
             self.stop = start
             self.size = stop
         else:
-            self.start = start
             self.stop = stop
 
         thread.all_events.append(self)
@@ -108,7 +105,7 @@ with ReadFile(input_filename) as rf:
         match = re.match('thread: (.*)', rf.line)
         if not match:
             print('parse error line %d, expected "thread"' % rf.lineno)
-        thread_name = match.group(1) + " " + str(thread_id)
+        thread_name = f"{match[1]} {str(thread_id)}"
         thread_id += 1
         thread = Thread(thread_name)
         threads.append(thread)
@@ -118,8 +115,8 @@ with ReadFile(input_filename) as rf:
             match = re.match('^gate: (.*?)(: (.*))?$', rf.line)
             if not match:
                 break
-            gate_location = match.group(1)
-            gate_name = match.group(3)
+            gate_location = match[1]
+            gate_name = match[3]
             rf.getnext()
 
             match = re.match('start:', rf.line)
@@ -242,12 +239,11 @@ def events_overlap(events):
 
 # do the events on two gates overlap?
 def gates_overlap(events, gate_name1, gate_name2):
-    merged = []
-
-    for event in events:
-        if event.gate_name == gate_name1 or event.gate_name == gate_name2:
-            merged.append(event)
-
+    merged = [
+        event
+        for event in events
+        if event.gate_name in [gate_name1, gate_name2]
+    ]
     merged.sort(key=lambda x: x.start)
 
     return events_overlap(merged)
@@ -305,7 +301,7 @@ for thread in threads:
     # second pass: move all other events to non-overlapping ys
     y = 1
     for event in thread.other_events:
-        if not event.gate_name in gate_positions:
+        if event.gate_name not in gate_positions:
             # look at all the ys we've allocated previously and see if we can 
             # add this gate to one of them
             for gate_y in range(1, y):
@@ -324,9 +320,9 @@ for thread in threads:
                     break
 
             # failure? add a new y
-            if not event.gate_name in gate_positions:
-                gate_positions[event.gate_name] = y
-                y += 1
+        if event.gate_name not in gate_positions:
+            gate_positions[event.gate_name] = y
+            y += 1
 
         event.y = gate_positions[event.gate_name]
 

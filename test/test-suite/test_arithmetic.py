@@ -11,17 +11,27 @@ from helpers import unsigned_formats, float_formats, noncomplex_formats, \
 
 class TestArithmetic:
     def run_arith(self, fn, fmt=all_formats):
-        [run_image2('%s image %s %s %s' % (fn.__name__, x, y, z),
-                    x.cast(y), x.cast(z), fn)
-         for x in self.all_images for y in fmt for z in fmt]
+        [
+            run_image2(
+                f'{fn.__name__} image {x} {y} {z}', x.cast(y), x.cast(z), fn
+            )
+            for x in self.all_images
+            for y in fmt
+            for z in fmt
+        ]
 
     def run_arith_const(self, fn, fmt=all_formats):
-        [run_const('%s scalar %s %s' % (fn.__name__, x, y), 
-                   fn, x.cast(y), 2)
-         for x in self.all_images for y in fmt]
-        [run_const('%s vector %s' % (fn.__name__, y), 
-                   fn, self.colour.cast(y), [1, 2, 3])
-         for y in fmt]
+        [
+            run_const(f'{fn.__name__} scalar {x} {y}', fn, x.cast(y), 2)
+            for x in self.all_images
+            for y in fmt
+        ]
+        [
+            run_const(
+                f'{fn.__name__} vector {y}', fn, self.colour.cast(y), [1, 2, 3]
+            )
+            for y in fmt
+        ]
 
     # run a function on an image,
     # 50,50 and 10,10 should have different values on the test image
@@ -30,8 +40,11 @@ class TestArithmetic:
         run_cmp(message, im, 10, 10, lambda x: run_fn(fn, x))
 
     def run_unary(self, images, fn, fmt=all_formats):
-        [self.run_imageunary(fn.__name__ + ' image', x.cast(y), fn)
-         for x in images for y in fmt]
+        [
+            self.run_imageunary(f'{fn.__name__} image', x.cast(y), fn)
+            for x in images
+            for y in fmt
+        ]
 
     # run a function on a pair of images
     # 50,50 and 10,10 should have different values on the test image
@@ -45,8 +58,8 @@ class TestArithmetic:
                               x.cast(y), x.cast(z), fn)
          for x in images for y in fmt for z in fmt]
 
-    def versiontuple(version_string):
-        return tuple(map(int, (version_string.split('.'))))
+    def versiontuple(self):
+        return tuple(map(int, self.split('.')))
 
     @classmethod
     def setup_class(cls):
@@ -150,10 +163,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image) or isinstance(y, pyvips.Image):
                 return x > y
             else:
-                if x > y:
-                    return 255
-                else:
-                    return 0
+                return 255 if x > y else 0
 
         self.run_arith_const(more)
         self.run_arith(more)
@@ -163,10 +173,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image) or isinstance(y, pyvips.Image):
                 return x >= y
             else:
-                if x >= y:
-                    return 255
-                else:
-                    return 0
+                return 255 if x >= y else 0
 
         self.run_arith_const(moreeq)
         self.run_arith(moreeq)
@@ -176,10 +183,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image) or isinstance(y, pyvips.Image):
                 return x < y
             else:
-                if x < y:
-                    return 255
-                else:
-                    return 0
+                return 255 if x < y else 0
 
         self.run_arith_const(less)
         self.run_arith(less)
@@ -189,10 +193,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image) or isinstance(y, pyvips.Image):
                 return x <= y
             else:
-                if x <= y:
-                    return 255
-                else:
-                    return 0
+                return 255 if x <= y else 0
 
         self.run_arith_const(lesseq)
         self.run_arith(lesseq)
@@ -202,10 +203,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image) or isinstance(y, pyvips.Image):
                 return x == y
             else:
-                if x == y:
-                    return 255
-                else:
-                    return 0
+                return 255 if x == y else 0
 
         self.run_arith_const(equal)
         self.run_arith(equal)
@@ -215,10 +213,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image) or isinstance(y, pyvips.Image):
                 return x != y
             else:
-                if x != y:
-                    return 255
-                else:
-                    return 0
+                return 255 if x != y else 0
 
         self.run_arith_const(noteq)
         self.run_arith(noteq)
@@ -417,57 +412,39 @@ class TestArithmetic:
 
     def test_sin(self):
         def my_sin(x):
-            if isinstance(x, pyvips.Image):
-                return x.sin()
-            else:
-                return math.sin(math.radians(x))
+            return x.sin() if isinstance(x, pyvips.Image) else math.sin(math.radians(x))
 
         self.run_unary(self.all_images, my_sin, fmt=noncomplex_formats)
 
     def test_cos(self):
         def my_cos(x):
-            if isinstance(x, pyvips.Image):
-                return x.cos()
-            else:
-                return math.cos(math.radians(x))
+            return x.cos() if isinstance(x, pyvips.Image) else math.cos(math.radians(x))
 
         self.run_unary(self.all_images, my_cos, fmt=noncomplex_formats)
 
     def test_tan(self):
         def my_tan(x):
-            if isinstance(x, pyvips.Image):
-                return x.tan()
-            else:
-                return math.tan(math.radians(x))
+            return x.tan() if isinstance(x, pyvips.Image) else math.tan(math.radians(x))
 
         self.run_unary(self.all_images, my_tan, fmt=noncomplex_formats)
 
     def test_asin(self):
         def my_asin(x):
-            if isinstance(x, pyvips.Image):
-                return x.asin()
-            else:
-                return math.degrees(math.asin(x))
+            return x.asin() if isinstance(x, pyvips.Image) else math.degrees(math.asin(x))
 
         im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
         self.run_unary([im], my_asin, fmt=noncomplex_formats)
 
     def test_acos(self):
         def my_acos(x):
-            if isinstance(x, pyvips.Image):
-                return x.acos()
-            else:
-                return math.degrees(math.acos(x))
+            return x.acos() if isinstance(x, pyvips.Image) else math.degrees(math.acos(x))
 
         im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
         self.run_unary([im], my_acos, fmt=noncomplex_formats)
 
     def test_atan(self):
         def my_atan(x):
-            if isinstance(x, pyvips.Image):
-                return x.atan()
-            else:
-                return math.degrees(math.atan(x))
+            return x.atan() if isinstance(x, pyvips.Image) else math.degrees(math.atan(x))
 
         im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
         self.run_unary([im], my_atan, fmt=noncomplex_formats)
@@ -478,10 +455,7 @@ class TestArithmetic:
             reason='your pyvips is too old')
     def test_sinh(self):
         def my_sinh(x):
-            if isinstance(x, pyvips.Image):
-                return x.sinh()
-            else:
-                return math.sinh(x)
+            return x.sinh() if isinstance(x, pyvips.Image) else math.sinh(x)
 
         self.run_unary(self.all_images, my_sinh, fmt=noncomplex_formats)
 
@@ -491,10 +465,7 @@ class TestArithmetic:
             reason='your pyvips is too old')
     def test_cosh(self):
         def my_cosh(x):
-            if isinstance(x, pyvips.Image):
-                return x.cosh()
-            else:
-                return math.cosh(x)
+            return x.cosh() if isinstance(x, pyvips.Image) else math.cosh(x)
 
         self.run_unary(self.all_images, my_cosh, fmt=noncomplex_formats)
 
@@ -504,10 +475,7 @@ class TestArithmetic:
             reason='your pyvips is too old')
     def test_tanh(self):
         def my_tanh(x):
-            if isinstance(x, pyvips.Image):
-                return x.tanh()
-            else:
-                return math.tanh(x)
+            return x.tanh() if isinstance(x, pyvips.Image) else math.tanh(x)
 
         self.run_unary(self.all_images, my_tanh, fmt=noncomplex_formats)
 
@@ -517,10 +485,7 @@ class TestArithmetic:
             reason='your pyvips is too old')
     def test_asinh(self):
         def my_asinh(x):
-            if isinstance(x, pyvips.Image):
-                return x.asinh()
-            else:
-                return math.asinh(x)
+            return x.asinh() if isinstance(x, pyvips.Image) else math.asinh(x)
 
         im = (pyvips.Image.black(100, 100) + [4, 5, 6]) / 3.0
         self.run_unary([im], my_asinh, fmt=noncomplex_formats)
@@ -531,10 +496,7 @@ class TestArithmetic:
             reason='your pyvips is too old')
     def test_acosh(self):
         def my_acosh(x):
-            if isinstance(x, pyvips.Image):
-                return x.acosh()
-            else:
-                return math.acosh(x)
+            return x.acosh() if isinstance(x, pyvips.Image) else math.acosh(x)
 
         im = (pyvips.Image.black(100, 100) + [4, 5, 6]) / 3.0
         self.run_unary([im], my_acosh, fmt=noncomplex_formats)
@@ -545,10 +507,7 @@ class TestArithmetic:
             reason='your pyvips is too old')
     def test_atanh(self):
         def my_atanh(x):
-            if isinstance(x, pyvips.Image):
-                return x.atanh()
-            else:
-                return math.atanh(x)
+            return x.atanh() if isinstance(x, pyvips.Image) else math.atanh(x)
 
         im = (pyvips.Image.black(100, 100) + [0, 1, 2]) / 3.0
         self.run_unary([im], my_atanh, fmt=noncomplex_formats)
@@ -569,64 +528,43 @@ class TestArithmetic:
 
     def test_log(self):
         def my_log(x):
-            if isinstance(x, pyvips.Image):
-                return x.log()
-            else:
-                return math.log(x)
+            return x.log() if isinstance(x, pyvips.Image) else math.log(x)
 
         self.run_unary(self.all_images, my_log, fmt=noncomplex_formats)
 
     def test_log10(self):
         def my_log10(x):
-            if isinstance(x, pyvips.Image):
-                return x.log10()
-            else:
-                return math.log10(x)
+            return x.log10() if isinstance(x, pyvips.Image) else math.log10(x)
 
         self.run_unary(self.all_images, my_log10, fmt=noncomplex_formats)
 
     def test_exp(self):
         def my_exp(x):
-            if isinstance(x, pyvips.Image):
-                return x.exp()
-            else:
-                return math.exp(x)
+            return x.exp() if isinstance(x, pyvips.Image) else math.exp(x)
 
         self.run_unary(self.all_images, my_exp, fmt=noncomplex_formats)
 
     def test_exp10(self):
         def my_exp10(x):
-            if isinstance(x, pyvips.Image):
-                return x.exp10()
-            else:
-                return math.pow(10, x)
+            return x.exp10() if isinstance(x, pyvips.Image) else math.pow(10, x)
 
         self.run_unary(self.all_images, my_exp10, fmt=noncomplex_formats)
 
     def test_floor(self):
         def my_floor(x):
-            if isinstance(x, pyvips.Image):
-                return x.floor()
-            else:
-                return math.floor(x)
+            return x.floor() if isinstance(x, pyvips.Image) else math.floor(x)
 
         self.run_unary(self.all_images, my_floor)
 
     def test_ceil(self):
         def my_ceil(x):
-            if isinstance(x, pyvips.Image):
-                return x.ceil()
-            else:
-                return math.ceil(x)
+            return x.ceil() if isinstance(x, pyvips.Image) else math.ceil(x)
 
         self.run_unary(self.all_images, my_ceil)
 
     def test_rint(self):
         def my_rint(x):
-            if isinstance(x, pyvips.Image):
-                return x.rint()
-            else:
-                return round(x)
+            return x.rint() if isinstance(x, pyvips.Image) else round(x)
 
         self.run_unary(self.all_images, my_rint)
 
@@ -634,13 +572,12 @@ class TestArithmetic:
         def my_sign(x):
             if isinstance(x, pyvips.Image):
                 return x.sign()
+            if x > 0:
+                return 1
+            elif x < 0:
+                return -1
             else:
-                if x > 0:
-                    return 1
-                elif x < 0:
-                    return -1
-                else:
-                    return 0
+                return 0
 
         self.run_unary(self.all_images, my_sign)
 
@@ -682,26 +619,27 @@ class TestArithmetic:
             assert pytest.approx(p2) == 10
 
     def test_find_trim(self):
-        if pyvips.type_find("VipsOperation", "find_trim") != 0:
-            im = pyvips.Image.black(50, 60) + 100
-            test = im.embed(10, 20, 200, 300, extend="white")
+        if pyvips.type_find("VipsOperation", "find_trim") == 0:
+            return
+        im = pyvips.Image.black(50, 60) + 100
+        test = im.embed(10, 20, 200, 300, extend="white")
 
-            for x in unsigned_formats + float_formats:
-                a = test.cast(x)
-                left, top, width, height = a.find_trim()
+        for x in unsigned_formats + float_formats:
+            a = test.cast(x)
+            left, top, width, height = a.find_trim()
 
-                assert left == 10
-                assert top == 20
-                assert width == 50
-                assert height == 60
-
-            test_rgb = test.bandjoin([test, test])
-            left, top, width, height = test_rgb.find_trim(background=[255, 255,
-                                                                      255])
             assert left == 10
             assert top == 20
             assert width == 50
             assert height == 60
+
+        test_rgb = test.bandjoin([test, test])
+        left, top, width, height = test_rgb.find_trim(background=[255, 255,
+                                                                  255])
+        assert left == 10
+        assert top == 20
+        assert width == 50
+        assert height == 60
 
     def test_profile(self):
         test = pyvips.Image.black(100, 100).draw_rect(100, 40, 50, 1, 1)

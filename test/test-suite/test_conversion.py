@@ -34,13 +34,21 @@ class TestConversion:
         run_cmp2(message, left, right, 10, 10, fn)
 
     def run_unary(self, images, fn, fmt=all_formats):
-        [self.run_image_pixels(fn.__name__ + (' %s' % y), x.cast(y), fn)
-         for x in images for y in fmt]
+        [
+            self.run_image_pixels(f'{fn.__name__} {y}', x.cast(y), fn)
+            for x in images
+            for y in fmt
+        ]
 
     def run_binary(self, images, fn, fmt=all_formats):
-        [self.run_image_pixels2(fn.__name__ + (' %s %s' % (y, z)),
-                                x.cast(y), x.cast(z), fn)
-         for x in images for y in fmt for z in fmt]
+        [
+            self.run_image_pixels2(
+                f'{fn.__name__} {y} {z}', x.cast(y), x.cast(z), fn
+            )
+            for x in images
+            for y in fmt
+            for z in fmt
+        ]
 
     @classmethod
     def setup_class(cls):
@@ -128,10 +136,7 @@ class TestConversion:
 
     def test_bandmean(self):
         def bandmean(x):
-            if isinstance(x, pyvips.Image):
-                return x.bandmean()
-            else:
-                return [sum(x) // len(x)]
+            return x.bandmean() if isinstance(x, pyvips.Image) else [sum(x) // len(x)]
 
         self.run_unary(self.all_images, bandmean, fmt=noncomplex_formats)
 
@@ -158,10 +163,7 @@ class TestConversion:
 
     def test_cache(self):
         def cache(x):
-            if isinstance(x, pyvips.Image):
-                return x.cache()
-            else:
-                return x
+            return x.cache() if isinstance(x, pyvips.Image) else x
 
         self.run_unary(self.all_images, cache)
 
@@ -382,9 +384,9 @@ class TestConversion:
             assert_almost_equal_objects(pixel, [20, 0, 41])
 
     def test_flatten(self):
+        mx = 255
         for fmt in unsigned_formats + [pyvips.BandFormat.SHORT,
                                        pyvips.BandFormat.INT] + float_formats:
-            mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
             test = self.colour.bandjoin(alpha).cast(fmt)
@@ -428,9 +430,9 @@ class TestConversion:
         assert(abs(im - im2).max() == 0)
 
     def test_premultiply(self):
+        mx = 255
         for fmt in unsigned_formats + [pyvips.BandFormat.SHORT,
                                        pyvips.BandFormat.INT] + float_formats:
-            mx = 255
             alpha = mx / 2.0
             test = self.colour.bandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
@@ -458,9 +460,9 @@ class TestConversion:
                                     threshold=0.1)
 
     def test_unpremultiply(self):
+        mx = 255
         for fmt in unsigned_formats + [pyvips.BandFormat.SHORT,
                                        pyvips.BandFormat.INT] + float_formats:
-            mx = 255
             alpha = mx / 2.0
             test = self.colour.bandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
@@ -758,11 +760,10 @@ class TestConversion:
         def recomb(x):
             if isinstance(x, pyvips.Image):
                 return x.recomb(array)
-            else:
-                sum = 0
-                for i, c in zip(array[0], x):
-                    sum += i * c
-                return [sum]
+            sum = 0
+            for i, c in zip(array[0], x):
+                sum += i * c
+            return [sum]
 
         self.run_unary([self.colour], recomb, fmt=noncomplex_formats)
 
